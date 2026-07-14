@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "126017224613",
+    "project_id": "focusedstudy-6cc24",
+    "storage_bucket": "focusedstudy-6cc24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126017224613:android:881d928cd0fc695d2cb24c",
+        "android_client_info": {
+          "package_name": "com.example.focusedstudyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrfquDezlcAOK1wIUdFsBnAUC-MLJpe4s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
