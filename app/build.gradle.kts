@@ -64,5 +64,5 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.3")
 
     implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-auth")
 }

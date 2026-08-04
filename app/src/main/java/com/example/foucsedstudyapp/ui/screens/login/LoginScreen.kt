@@ -1,17 +1,14 @@
-package com.example.foucsedstudyapp.ui.screens
+package com.example.foucsedstudyapp.ui.screens.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -26,75 +23,78 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.foucsedstudyapp.R
 import com.example.foucsedstudyapp.navigation.Screen
+import com.example.foucsedstudyapp.viewmodel.LoginViewModel
 
 @Composable
-fun SignupScreen(navController: NavController) {
-    var name by remember { mutableStateOf("") }
+fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val viewModel: LoginViewModel = viewModel()
+    val isLoading = viewModel.isLoading.value
+    val errorMessage = viewModel.errorMessage.value
+    val loginSuccess = viewModel.loginSuccess.value
 
     val primaryBlue = Color(0xFF0052CC)
     val titleDark = Color(0xFF0D1B3E)
-    val scrollState = rememberScrollState()
+
+    LaunchedEffect(loginSuccess) {
+        if (loginSuccess) {
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Welcome.route) { inclusive = true }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
-            .padding(24.dp)
-            .verticalScroll(scrollState),
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Top right mini logo
 
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Large Logo
+        Image(
+            painter = painterResource(R.drawable.applogo),
+            contentDescription = "Focused Study Logo",
+            modifier = Modifier.size(100.dp),
+            contentScale = ContentScale.Fit
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Create Account",
+            text = "Welcome Back",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = titleDark
         )
 
         Text(
-            text = "Start your focused study journey today.",
+            text = "Sign in to continue your journey.",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Name Field
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Full Name") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = primaryBlue) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primaryBlue,
-                unfocusedBorderColor = Color.LightGray
-            ),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
         // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email Address") },
+            placeholder = { Text("example@email.com") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = primaryBlue) },
@@ -129,29 +129,30 @@ fun SignupScreen(navController: NavController) {
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Confirm Password Field
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = primaryBlue) },
-            visualTransformation = PasswordVisualTransformation(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primaryBlue,
-                unfocusedBorderColor = Color.LightGray
-            ),
-            singleLine = true
-        )
+        Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.CenterEnd) {
+            Text(
+                text = "Forgot Password?",
+                color = primaryBlue,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.clickable { /* Handle forgot password */ }
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Sign Up Button
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                modifier = Modifier.padding(bottom = 8.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        // Login Button
         Button(
-            onClick = { navController.navigate(Screen.Home.route) },
+            onClick = { viewModel.login(email, password) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
@@ -162,31 +163,38 @@ fun SignupScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Sign Up",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = Color.White
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
+                    )
+                } else {
+                    Text(
+                        text = "Login",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         // Footer
         Row(modifier = Modifier.padding(bottom = 16.dp)) {
-            Text(text = "Already have an account? ", color = Color.Gray)
+            Text(text = "Don't have an account? ", color = Color.Gray)
             Text(
-                text = "Sign In",
+                text = "Sign Up",
                 color = primaryBlue,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { navController.navigate(Screen.Login.route) }
+                modifier = Modifier.clickable { navController.navigate(Screen.SignUp.route) }
             )
         }
     }

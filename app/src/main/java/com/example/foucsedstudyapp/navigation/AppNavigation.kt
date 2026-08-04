@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.foucsedstudyapp.ui.screens.HomeScreen
-import com.example.foucsedstudyapp.ui.screens.LoginScreen
+import com.example.foucsedstudyapp.ui.screens.home.HomeScreen
+import com.example.foucsedstudyapp.ui.screens.login.LoginScreen
 import com.example.foucsedstudyapp.ui.screens.WelcomeScreen
-import com.example.foucsedstudyapp.ui.screens.SignupScreen
+import com.example.foucsedstudyapp.ui.screens.login.SignupScreen
 
 @Composable
 fun AppNavigation() {
