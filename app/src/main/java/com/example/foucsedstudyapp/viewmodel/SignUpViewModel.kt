@@ -39,6 +39,7 @@ class SignUpViewModel : ViewModel() {
         errorMessage.value = ""
 
         repository.signUp(
+            name = name,
             email = email,
             password = password,
             onSuccess = {
