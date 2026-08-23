@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.foucsedstudyapp.ui.screens.home.HomeScreen
 import com.example.foucsedstudyapp.ui.screens.login.LoginScreen
 import com.example.foucsedstudyapp.ui.screens.WelcomeScreen
+import com.example.foucsedstudyapp.ui.screens.focus.FocusScreen
 import com.example.foucsedstudyapp.ui.screens.login.SignupScreen
 
 @Composable
@@ -31,6 +32,11 @@ fun AppNavigation() {
 
         composable(Screen.Home.route) {
             HomeScreen(navController)
+        }
+
+
+        composable(Screen.Focus.route) {
+            FocusScreen(navController)
         }
     }
 }

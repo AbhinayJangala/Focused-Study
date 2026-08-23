@@ -1,5 +1,7 @@
 package com.example.foucsedstudyapp.viewmodel
 
+import com.example.foucsedstudyapp.data.User
+
 data class LeaderboardUser(
     val rank: Int,
     val name: String,
@@ -8,15 +10,12 @@ data class LeaderboardUser(
 )
 
 data class HomeUiState(
-    val userName: String = "Abhinay",
+    val user: User? = null,
+    val userName: String = "User",
     val greeting: String = "Good Morning",
-    val studyTimeToday: String = "2h 15m",
-    val streak: Int = 5,
-    val sessionsToday: Int = 4,
-    val rank: String = "#18",
-    val leaderboard: List<LeaderboardUser> = listOf(
-        LeaderboardUser(1, "Rahul", "8h"),
-        LeaderboardUser(2, "Priya", "7h"),
-        LeaderboardUser(3, "You", "6h", true)
-    )
+    val studyTimeToday: String = "0m",
+    val streak: Int = 0,
+    val sessionsToday: Int = 0,
+    val rank: String = "#--",
+    val leaderboard: List<LeaderboardUser> = emptyList()
 )

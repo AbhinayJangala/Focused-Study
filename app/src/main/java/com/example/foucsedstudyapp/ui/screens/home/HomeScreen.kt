@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -126,7 +125,7 @@ fun HomeScreen(
                         Text(text = "🔥", fontSize = 16.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${uiState.streak} Day Streak",
+                            text = "${uiState.user?.streak ?: 0} Day Streak",
                             color = Color(0xFFE67E22),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
@@ -169,7 +168,10 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = { },
+                        onClick = {
+                            navController.navigate("focus")
+
+                        },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                         shape = RoundedCornerShape(16.dp)
