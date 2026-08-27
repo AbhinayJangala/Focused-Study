@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,14 +33,10 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val primaryBlue = Color(0xFF0052CC)
-    val primaryGreen = Color(0xFF2EBD6B)
-    val backgroundColor = Color(0xFFF8FAFC)
-
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -48,9 +45,9 @@ fun HomeScreen(
                     selected = true,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = primaryBlue,
-                        unselectedIconColor = Color.Gray,
-                        indicatorColor = Color(0xFFE6F0FF)
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                     )
                 )
                 NavigationBarItem(
@@ -59,7 +56,7 @@ fun HomeScreen(
                     selected = false,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = Color.Gray
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 )
                 NavigationBarItem(
@@ -68,7 +65,7 @@ fun HomeScreen(
                     selected = false,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = Color.Gray
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 )
                 NavigationBarItem(
@@ -77,12 +74,12 @@ fun HomeScreen(
                     selected = false,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = Color.Gray
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 )
             }
         },
-        containerColor = backgroundColor
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -103,13 +100,13 @@ fun HomeScreen(
                     Text(
                         text = "☀️ ${uiState.greeting},",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
                     Text(
                         text = uiState.userName,
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0D1B3E)
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 
@@ -134,75 +131,80 @@ fun HomeScreen(
                 }
             }
 
-            Text(
-                text = "Keep your streak alive!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-
             Spacer(modifier = Modifier.height(28.dp))
 
             // Today's Focus Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = primaryBlue)
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                )
+                            )
+                        )
+                        .padding(24.dp)
                 ) {
-                    Text(
-                        text = "Today's Focus",
-                        color = Color.White.copy(alpha = 0.8f),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = uiState.studyTimeToday,
-                        color = Color.White,
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 40.sp
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Button(
-                        onClick = {
-                            navController.navigate("focus")
-
-                        },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Start Focus Session",
-                            color = primaryBlue,
-                            fontWeight = FontWeight.Bold
+                            text = "Today's Focus",
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.titleMedium
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = uiState.studyTimeToday,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 42.sp
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = { navController.navigate("focus") },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = "Start Focus Session",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Quick Stats
             Text(
                 text = "Quick Stats",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0D1B3E)
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatItem(Modifier.weight(1f), "📚 Sessions", "${uiState.sessionsToday}", primaryBlue)
-                StatItem(Modifier.weight(1f), "⏱ Time", uiState.studyTimeToday, primaryGreen)
-                StatItem(Modifier.weight(1f), "🏆 Rank", uiState.rank, Color(0xFF9133FF))
+                StatItem(Modifier.weight(1f), "📚 Sessions", "${uiState.sessionsToday}", MaterialTheme.colorScheme.primary)
+                StatItem(Modifier.weight(1f), "⏱ Time", uiState.studyTimeToday, MaterialTheme.colorScheme.secondary)
+                StatItem(Modifier.weight(1f), "🏆 Rank", uiState.rank, MaterialTheme.colorScheme.tertiary)
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Leaderboard Section
             Row(
@@ -214,18 +216,19 @@ fun HomeScreen(
                     text = "Leaderboard",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0D1B3E)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 TextButton(onClick = { }) {
-                    Text(text = "See All →", color = primaryBlue)
+                    Text(text = "See All →", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
             
-            Card(
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp,
+                shadowElevation = 1.dp
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     uiState.leaderboard.forEachIndexed { index, user ->
@@ -234,10 +237,10 @@ fun HomeScreen(
                             name = user.name,
                             time = user.time,
                             isUser = user.isUser,
-                            accentColor = if (user.isUser) primaryBlue else Color.Transparent
+                            accentColor = if (user.isUser) MaterialTheme.colorScheme.primary else Color.Transparent
                         )
                         if (index < uiState.leaderboard.size - 1) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF1F5F9))
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
                 }
@@ -250,19 +253,20 @@ fun HomeScreen(
 
 @Composable
 fun StatItem(modifier: Modifier, title: String, value: String, accentColor: Color) {
-    Card(
+    Surface(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp,
+        shadowElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = title, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(text = title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = accentColor)
+            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = accentColor)
         }
     }
 }
@@ -277,21 +281,21 @@ fun LeaderboardItem(rank: Int, name: String, time: String, isUser: Boolean, acce
             text = "$rank.",
             modifier = Modifier.width(28.dp),
             fontWeight = FontWeight.Bold,
-            color = if (isUser) (if (accentColor != Color.Transparent) accentColor else Color.Gray) else Color.Gray
+            color = if (isUser) accentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
         
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(if (isUser) (if (accentColor != Color.Transparent) accentColor.copy(alpha = 0.1f) else Color(0xFFF1F5F9)) else Color(0xFFF1F5F9)),
+                .background(if (isUser) accentColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.outlineVariant),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Person,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
-                tint = if (isUser) (if (accentColor != Color.Transparent) accentColor else Color.Gray) else Color.Gray
+                tint = if (isUser) accentColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
         
@@ -300,14 +304,14 @@ fun LeaderboardItem(rank: Int, name: String, time: String, isUser: Boolean, acce
         Text(
             text = name,
             modifier = Modifier.weight(1f),
-            fontWeight = if (isUser) FontWeight.Bold else FontWeight.Medium,
-            color = if (isUser) (if (accentColor != Color.Transparent) accentColor else Color(0xFF0D1B3E)) else Color(0xFF0D1B3E)
+            fontWeight = if (isUser) FontWeight.ExtraBold else FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
         
         Text(
             text = time,
-            fontWeight = FontWeight.Bold,
-            color = if (isUser) (if (accentColor != Color.Transparent) accentColor else Color(0xFF0D1B3E)) else Color(0xFF0D1B3E)
+            fontWeight = FontWeight.ExtraBold,
+            color = if (isUser) accentColor else MaterialTheme.colorScheme.onSurface
         )
     }
 }

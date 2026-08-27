@@ -1,47 +1,57 @@
-# Implementation Plan - Focus Session & App Blocking
+# Professional UI Overhaul Plan
 
-Enhance the Focus flow by adding app selection for blocking and implementing the Timer/Stopwatch screen.
+Upgrade the entire app's user interface to a high-quality, professional standard using Material 3, custom theming, and refined layouts.
 
 ## Proposed Changes
 
-### Navigation
+### 1. Global Theming & Branding
 
-#### [MODIFY] [screen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/navigation/screen.kt)
-- Add `Timer` route to the `Screen` sealed class.
+#### [MODIFY] [Color.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/theme/Color.kt)
+- Define a professional brand palette:
+    - Primary: Deep Blue (`0xFF0052CC`)
+    - Secondary: Success Green (`0xFF2EBD6B`)
+    - Tertiary: Soft Purple (`0xFF9133FF`)
+    - Backgrounds: Clean Grays and Whites (`0xFFF8FAFC`)
 
-#### [MODIFY] [AppNavigation.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/navigation/AppNavigation.kt)
-- Add a composable for `TimerScreen` that receives the selected time and apps.
-
----
-
-### Data & State Management
-
-#### [NEW] [FocusViewModel.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/viewmodel/FocusViewModel.kt)
-- Manage `selectedMinutes`.
-- Manage a list of `AppInfo` (mocked list for selection).
-- Handle navigation to the Timer screen.
+#### [MODIFY] [Theme.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/theme/Theme.kt)
+- Update `LightColorScheme` and `DarkColorScheme` to use the brand colors.
+- Ensure consistent surface and background colors.
 
 ---
 
-### UI Components
+### 2. Authentication & Onboarding
+
+#### [MODIFY] [WelcomeScreen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/screens/WelcomeScreen.kt)
+- Replace hardcoded colors with `MaterialTheme.colorScheme`.
+- Implement a modern "Get Started" button with consistent branding.
+- Refine feature cards with better typography and iconography.
+
+#### [MODIFY] [LoginScreen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/screens/login/LoginScreen.kt) & [SignupScreen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/screens/login/SignupScreen.kt)
+- Standardize `OutlinedTextField` styling.
+- Improve button states (Loading, Success).
+- Refine the overall layout for better focus on input fields.
+
+---
+
+### 3. Core Experience
+
+#### [MODIFY] [HomeScreen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/screens/home/HomeScreen.kt)
+- Enhance the "Today's Focus" card with a subtle gradient and better padding.
+- Standardize "Quick Stats" and "Leaderboard" items using consistent Material 3 surface components.
 
 #### [MODIFY] [FocusScreen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/screens/focus/FocusScreen.kt)
-- Add a "Select Apps to Block" section with a scrollable list of apps and checkboxes.
-- Add a "Start Session" button at the bottom.
-- Visual feedback for the selected time button.
+- Refine `TimeButton` states (Selected vs Unselected) using theme-aware colors.
+- Improve the `AppBlockItem` with app icons and a cleaner selection toggle.
 
 #### [MODIFY] [TimerScreen.kt](file:///C:/Users/abhin/AndroidStudioProjects/FoucsedStudyApp/app/src/main/java/com/example/foucsedstudyapp/ui/screens/focus/TimerScreen.kt)
-- Implement a countdown timer/stopwatch based on the selected duration.
-- Display a list of "Blocked Apps" during the session.
-- Add a "Quit" or "Finish" button.
+- Implement a premium-feeling timer UI.
+- Use a thicker, more modern `CircularProgressIndicator`.
+- Add subtle background elements to make the countdown more engaging.
 
 ## Verification Plan
 
-### Automated Tests
-- N/A for this phase (manual verification preferred for UI flow).
-
 ### Manual Verification
-- Navigate from Home -> Focus.
-- Select a time and toggle some apps.
-- Click "Start Session" and verify navigation to Timer.
-- Verify the timer counts down correctly.
+- Deploy to an emulator/device.
+- Verify color consistency across all screens.
+- Check responsive behavior (padding and spacing) on different screen sizes.
+- Test button interactions and navigation transitions.

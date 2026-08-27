@@ -32,80 +32,82 @@ import com.example.foucsedstudyapp.navigation.Screen
 
 @Composable
 fun WelcomeScreen(navController: NavController) {
-    val primaryBlue = Color(0xFF0052CC)
-    val primaryGreen = Color(0xFF2EBD6B)
-    val titleDark = Color(0xFF0D1B3E)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(48.dp))
 
+        Surface(
+            modifier = Modifier.size(160.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.applogo),
+                contentDescription = "Focused Study Logo",
+                modifier = Modifier.padding(24.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
-        Image(
-            painter = painterResource(R.drawable.applogo),
-            contentDescription = "Focused Study Logo",
-            modifier = Modifier.size(180.dp),
-            contentScale = ContentScale.Fit
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
 
         // Title
         Text(
             text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = titleDark, fontWeight = FontWeight.Bold)) {
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.ExtraBold)) {
                     append("Focused ")
                 }
-                withStyle(style = SpanStyle(color = primaryGreen, fontWeight = FontWeight.Bold)) {
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.ExtraBold)) {
                     append("Study")
                 }
             },
-            style = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp)
+            style = MaterialTheme.typography.headlineLarge,
+            fontSize = 36.sp
         )
 
         // Subtitle
         Text(
             text = "Stay focused. Build consistency.\nAchieve your goals.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 12.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // Feature Cards
-        FeatureCard(
-            icon = Icons.Default.Adjust,
-            iconBgColor = Color(0xFFE6F0FF),
-            iconColor = primaryBlue,
-            title = "Stay Focused",
-            description = "Eliminate distractions and concentrate on what matters."
-        )
+        // Feature Cards Section
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FeatureCard(
+                icon = Icons.Default.Adjust,
+                iconColor = MaterialTheme.colorScheme.primary,
+                title = "Stay Focused",
+                description = "Eliminate distractions and concentrate on what matters."
+            )
 
-        FeatureCard(
-            icon = Icons.Default.BarChart,
-            iconBgColor = Color(0xFFE6F7ED),
-            iconColor = primaryGreen,
-            title = "Track Progress",
-            description = "Monitor your study time and improve every day."
-        )
+            FeatureCard(
+                icon = Icons.Default.BarChart,
+                iconColor = MaterialTheme.colorScheme.secondary,
+                title = "Track Progress",
+                description = "Monitor your study time and improve every day."
+            )
 
-        FeatureCard(
-            icon = Icons.Default.EmojiEvents,
-            iconBgColor = Color(0xFFF3E8FF),
-            iconColor = Color(0xFF9133FF),
-            title = "Achieve Goals",
-            description = "Set goals, stay consistent and achieve more."
-        )
+            FeatureCard(
+                icon = Icons.Default.EmojiEvents,
+                iconColor = MaterialTheme.colorScheme.tertiary,
+                title = "Achieve Goals",
+                description = "Set goals, stay consistent and achieve more."
+            )
+        }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
+        Spacer(modifier = Modifier.weight(1f))
 
         // Get Started Button
         Button(
@@ -113,92 +115,64 @@ fun WelcomeScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.applogo),
-                        contentDescription = null,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
                 Text(
                     text = "Get Started",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
-
+                Spacer(modifier = Modifier.width(12.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        // Footer
-        Text(
-            text = "Terms of Service | Privacy Policy",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
 fun FeatureCard(
     icon: ImageVector,
-    iconBgColor: Color,
     iconColor: Color,
     title: String,
     description: String
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp,
+        shadowElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(52.dp)
                     .clip(CircleShape)
-                    .background(iconBgColor),
+                    .background(iconColor.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -207,12 +181,12 @@ fun FeatureCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0D1B3E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }

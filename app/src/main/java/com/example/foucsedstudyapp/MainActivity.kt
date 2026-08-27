@@ -10,10 +10,11 @@ import com.example.foucsedstudyapp.ui.theme.FoucsedStudyAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val openTimer = intent.getBooleanExtra("OPEN_TIMER", false)
         enableEdgeToEdge()
         setContent {
             FoucsedStudyAppTheme {
-                AppNavigation()
+                AppNavigation(openTimer = openTimer)
             }
         }
     }
