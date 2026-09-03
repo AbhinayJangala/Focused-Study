@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foucsedstudyapp.ui.screens.focus.InstalledApp
 import com.example.foucsedstudyapp.ui.screens.focus.getInstalledApps
+import com.example.foucsedstudyapp.utils.FocusManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,5 +31,13 @@ class FocusViewModel : ViewModel() {
             _installedApps.value = apps
             _isLoading.value = false
         }
+    }
+
+    fun startFocusSession(context: Context, apps: Set<String>, minutes: Int) {
+        FocusManager(context).startFocus(apps, minutes)
+    }
+
+    fun stopFocusSession(context: Context) {
+        FocusManager(context).stopFocus()
     }
 }

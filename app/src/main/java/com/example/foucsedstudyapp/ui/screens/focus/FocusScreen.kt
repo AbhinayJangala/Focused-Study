@@ -146,7 +146,9 @@ fun FocusScreen(
 
             Button(
                 onClick = { 
-                    navController.navigate("timer/$selectedMinutes")
+                    viewModel.startFocusSession(context, selectedApps, selectedMinutes)
+                    val timeInSeconds = selectedMinutes * 60
+                    navController.navigate("timer/$timeInSeconds?total=$timeInSeconds")
                 },
                 modifier = Modifier
                     .fillMaxWidth()

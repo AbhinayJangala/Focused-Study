@@ -6,6 +6,6 @@ sealed class Screen(val route: String) {
     object SignUp : Screen("signup")
     object Home : Screen("home")
     object Focus : Screen("focus")
-    object Timer : Screen("timer/{minutes}")
+    object Timer : Screen("timer/{time}?total={total}")
 
 }

@@ -20,17 +20,25 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.foucsedstudyapp.viewmodel.FocusViewModel
 import kotlinx.coroutines.delay
 import java.util.Locale
 
 @Composable
 fun TimerScreen(
     navController: NavController,
-    initialMinutes: Int
+    initialSeconds: Long,
+    totalDuration: Long = initialSeconds,
+    viewModel: FocusViewModel = viewModel()
 ) {
-    var timeLeftSeconds by remember { mutableStateOf(initialMinutes * 60L) }
+    val context = LocalContext.current
+    var timeLeftSeconds by remember { mutableStateOf(initialSeconds) }
     var isRunning by remember { mutableStateOf(true) }
+
+    val maxSeconds = remember { totalDuration }
 
     LaunchedEffect(isRunning, timeLeftSeconds) {
         if (isRunning && timeLeftSeconds > 0) {
@@ -41,7 +49,7 @@ fun TimerScreen(
 
     val minutes = timeLeftSeconds / 60
     val seconds = timeLeftSeconds % 60
-    val progress = if (initialMinutes > 0) timeLeftSeconds.toFloat() / (initialMinutes * 60) else 0f
+    val progress = if (maxSeconds > 0) timeLeftSeconds.toFloat() / maxSeconds else 0f
     
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -138,7 +146,13 @@ fun TimerScreen(
                 Spacer(modifier = Modifier.width(24.dp))
 
                 Button(
-                    onClick = { navController.popBackStack() },
+                    onClick = { 
+                        viewModel.stopFocusSession(context)
+                        navController.navigate("home") {
+                            // Clear all previous screens including Welcome/Login
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
                     modifier = Modifier
                         .height(64.dp)
                         .weight(1f),

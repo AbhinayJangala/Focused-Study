@@ -5,26 +5,37 @@ import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.example.foucsedstudyapp.MainActivity
+import com.example.foucsedstudyapp.utils.FocusManager
 
 class AppBlockingService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        val packageName = event?.packageName
+        val packageName = event?.packageName?.toString() ?: return
+        val focusManager = FocusManager(this)
 
         if (packageName == "com.example.foucsedstudyapp") {
             return
         }
 
-        Log.d("AppBlockingService", "Current app: $packageName")
+        if (focusManager.isFocusActive()) {
+            val blockedApps = focusManager.getBlockedApps()
 
-        if (packageName == "in.amazon.mShop.android.shopping") {
-            Log.d("AppBlockingService", "AMAZON DETECTED - SHOULD BLOCK")
+            if (packageName in blockedApps) {
+                Log.d("AppBlockingService", "BLOCKED APP DETECTED: $packageName")
 
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("OPEN_TIMER", true)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val remainingSeconds = focusManager.getRemainingSeconds()
+                val totalDuration = focusManager.getSessionDurationSeconds()
+                
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    putExtra("OPEN_TIMER", true)
+                    putExtra("REMAINING_SECONDS", remainingSeconds)
+                    putExtra("TOTAL_DURATION", totalDuration)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
 
-            startActivity(intent)
+                startActivity(intent)
+            }
         }
     }
 

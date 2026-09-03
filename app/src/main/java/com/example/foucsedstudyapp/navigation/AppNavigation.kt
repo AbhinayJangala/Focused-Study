@@ -12,12 +12,26 @@ import com.example.foucsedstudyapp.ui.screens.focus.TimerScreen
 import com.example.foucsedstudyapp.ui.screens.login.SignupScreen
 import androidx.compose.runtime.LaunchedEffect
 @Composable
-fun AppNavigation(openTimer: Boolean = false) {
+fun AppNavigation(
+    openTimer: Boolean = false,
+    initialSeconds: Long = -1L,
+    totalDuration: Long = -1L,
+    onRedirectHandled: () -> Unit = {}
+) {
     val navController = rememberNavController()
 
-    LaunchedEffect(openTimer) {
+    LaunchedEffect(openTimer, initialSeconds, totalDuration) {
         if (openTimer) {
-            navController.navigate("timer/30")
+            onRedirectHandled()
+            val route = if (initialSeconds > 0) {
+                "timer/$initialSeconds?total=$totalDuration"
+            } else {
+                "timer/${30 * 60}?total=${30 * 60}"
+            }
+            navController.navigate(route) {
+                // Ensure we don't build up multiple timer screens
+                launchSingleTop = true
+            }
         }
     }
     NavHost(
@@ -46,11 +60,13 @@ fun AppNavigation(openTimer: Boolean = false) {
         }
         composable(Screen.Timer.route) { backStackEntry ->
 
-            val minutes = backStackEntry.arguments?.getString("minutes")?.toInt() ?: 30
+            val time = backStackEntry.arguments?.getString("time")?.toLong() ?: (30 * 60L)
+            val total = backStackEntry.arguments?.getString("total")?.toLong() ?: time
 
             TimerScreen(
                 navController = navController,
-                initialMinutes = minutes
+                initialSeconds = time,
+                totalDuration = total
             )
         }
     }
