@@ -11,6 +11,11 @@ import com.example.foucsedstudyapp.ui.screens.focus.FocusScreen
 import com.example.foucsedstudyapp.ui.screens.focus.TimerScreen
 import com.example.foucsedstudyapp.ui.screens.login.SignupScreen
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.example.foucsedstudyapp.utils.FocusManager
+import com.google.firebase.auth.FirebaseAuth
+
 @Composable
 fun AppNavigation(
     openTimer: Boolean = false,
@@ -19,6 +24,12 @@ fun AppNavigation(
     onRedirectHandled: () -> Unit = {}
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val focusManager = remember { FocusManager(context) }
+
+    val isFocusActive = focusManager.isFocusActive()
+    val remainingSeconds = focusManager.getRemainingSeconds()
+    val sessionTotal = focusManager.getSessionDurationSeconds()
 
     LaunchedEffect(openTimer, initialSeconds, totalDuration) {
         if (openTimer) {
@@ -34,9 +45,20 @@ fun AppNavigation(
             }
         }
     }
+    val startDestination = when {
+        isFocusActive && remainingSeconds > 0 -> {
+            "timer/$remainingSeconds?total=$sessionTotal"
+        }
+        FirebaseAuth.getInstance().currentUser != null -> {
+            Screen.Home.route
+        }
+        else -> {
+            Screen.Welcome.route
+        }
+    }
     NavHost(
         navController = navController,
-        startDestination = Screen.Welcome.route
+        startDestination = startDestination
     ) {
         composable(Screen.Welcome.route) {
             WelcomeScreen(navController)

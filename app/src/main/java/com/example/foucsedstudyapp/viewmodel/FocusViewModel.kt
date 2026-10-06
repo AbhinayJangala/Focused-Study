@@ -3,6 +3,7 @@ package com.example.foucsedstudyapp.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foucsedstudyapp.repository.FocusRepository
 import com.example.foucsedstudyapp.ui.screens.focus.InstalledApp
 import com.example.foucsedstudyapp.ui.screens.focus.getInstalledApps
 import com.example.foucsedstudyapp.utils.FocusManager
@@ -20,6 +21,7 @@ class FocusViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val focusRepository = FocusRepository()
     fun loadApps(context: Context) {
         if (_installedApps.value.isNotEmpty()) return
         
