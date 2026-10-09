@@ -36,6 +36,22 @@ class AuthRepository {
         )
     }
 
+    fun signInWithGoogle(
+        idToken: String,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        authService.signInWithGoogle(idToken, onSuccess, onFailure)
+    }
+    fun resetPassword(
+        email: String,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        authService.resetPassword(email, onSuccess, onFailure)
+    }
+
+
     fun signOut() {
         authService.signOut()
     }

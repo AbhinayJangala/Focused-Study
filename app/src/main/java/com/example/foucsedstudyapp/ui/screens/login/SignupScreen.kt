@@ -150,6 +150,27 @@ fun SignupScreen(navController: NavController) {
                 singleLine = true
             )
 
+            // Password Requirements Checklist
+            Spacer(modifier = Modifier.height(8.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                val hasLength = password.length > 8
+                val hasUpper = password.any { it.isUpperCase() }
+                val hasLower = password.any { it.isLowerCase() }
+                val hasDigit = password.any { it.isDigit() }
+                val hasSpecial = password.any { !it.isLetterOrDigit() }
+
+                PasswordRequirementRow("More than 8 characters", hasLength)
+                PasswordRequirementRow("At least one uppercase letter (A-Z)", hasUpper)
+                PasswordRequirementRow("At least one lowercase letter (a-z)", hasLower)
+                PasswordRequirementRow("At least one number (0-9)", hasDigit)
+                PasswordRequirementRow("At least one special character (!@#...)", hasSpecial)
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Confirm Password Field
@@ -224,7 +245,7 @@ fun SignupScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Footer
-            Row(modifier = Modifier.padding(bottom = 24.dp)) { // wait, 24.dp
+            Row(modifier = Modifier.padding(bottom = 24.dp)) {
                 Text(text = "Already have an account? ", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                 Text(
                     text = "Sign In",
@@ -234,5 +255,25 @@ fun SignupScreen(navController: NavController) {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun PasswordRequirementRow(text: String, satisfied: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = if (satisfied) "✓" else "•",
+            color = if (satisfied) Color(0xFF27AE60) else Color.Gray,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (satisfied) Color(0xFF27AE60) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+        )
     }
 }

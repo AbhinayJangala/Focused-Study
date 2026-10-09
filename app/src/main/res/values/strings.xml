@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FoucsedStudy App</string>
+    <string name="default_web_client_id" translatable="false">126017224613-uts0dqo20kh80o2nk65ahaifaive41cc.apps.googleusercontent.com</string>
 </resources>

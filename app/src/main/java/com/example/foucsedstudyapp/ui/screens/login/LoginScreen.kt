@@ -31,6 +31,7 @@ import com.example.foucsedstudyapp.R
 import com.example.foucsedstudyapp.navigation.Screen
 import com.example.foucsedstudyapp.utils.isAccessibilityServiceEnabled
 import com.example.foucsedstudyapp.viewmodel.LoginViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -43,6 +44,43 @@ fun LoginScreen(navController: NavController) {
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage
     val loginSuccess by viewModel.loginSuccess
+
+    val coroutineScope = rememberCoroutineScope()
+
+    fun handleGoogleSignIn() {
+        coroutineScope.launch {
+            try {
+                val credentialManager = androidx.credentials.CredentialManager.create(context)
+                val serverClientId = try {
+                    context.getString(com.example.foucsedstudyapp.R.string.default_web_client_id)
+                } catch (_: Exception) {
+                    "YOUR_WEB_CLIENT_ID"
+                }
+
+                val googleIdOption = com.google.android.libraries.identity.googleid.GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(serverClientId)
+                    .setAutoSelectEnabled(false)
+                    .build()
+
+                val request = androidx.credentials.GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val result = credentialManager.getCredential(context, request)
+                val credential = result.credential
+
+                if (credential is androidx.credentials.CustomCredential &&
+                    credential.type == com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdTokenCredential = com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.createFrom(credential.data)
+                    val googleIdToken = googleIdTokenCredential.idToken
+                    viewModel.signInWithGoogle(googleIdToken)
+                }
+            } catch (e: Exception) {
+                viewModel.errorMessage.value = e.message ?: "Google Sign-In failed"
+            }
+        }
+    }
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
@@ -140,7 +178,11 @@ fun LoginScreen(navController: NavController) {
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.clickable { /* Handle forgot password */ }
+                    modifier = Modifier.clickable {
+
+                        viewModel.resetPassword(email)
+
+                    }
                 )
             }
 
@@ -191,6 +233,30 @@ fun LoginScreen(navController: NavController) {
                             contentDescription = null
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Google Sign In Button
+            OutlinedButton(
+                onClick = { handleGoogleSignIn() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                enabled = !isLoading
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Sign in with Google",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 

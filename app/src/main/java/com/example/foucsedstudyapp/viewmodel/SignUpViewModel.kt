@@ -26,8 +26,24 @@ class SignUpViewModel : ViewModel() {
             errorMessage.value = "Invalid email format"
             return
         }
-        if (password.length < 6) {
-            errorMessage.value = "Password must be at least 6 characters"
+        if (password.length <= 8) {
+            errorMessage.value = "Password must be more than 8 characters"
+            return
+        }
+        if (!password.any { it.isUpperCase() }) {
+            errorMessage.value = "Password must contain at least one uppercase letter"
+            return
+        }
+        if (!password.any { it.isLowerCase() }) {
+            errorMessage.value = "Password must contain at least one lowercase letter"
+            return
+        }
+        if (!password.any { it.isDigit() }) {
+            errorMessage.value = "Password must contain at least one number"
+            return
+        }
+        if (!password.any { !it.isLetterOrDigit() }) {
+            errorMessage.value = "Password must contain at least one special character"
             return
         }
         if (password != confirmPass) {
