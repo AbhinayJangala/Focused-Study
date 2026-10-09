@@ -10,10 +10,12 @@ import com.example.foucsedstudyapp.ui.screens.WelcomeScreen
 import com.example.foucsedstudyapp.ui.screens.focus.FocusScreen
 import com.example.foucsedstudyapp.ui.screens.focus.TimerScreen
 import com.example.foucsedstudyapp.ui.screens.login.SignupScreen
+import com.example.foucsedstudyapp.ui.screens.permissions.AccessibilityPermissionScreen
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.example.foucsedstudyapp.utils.FocusManager
+import com.example.foucsedstudyapp.utils.isAccessibilityServiceEnabled
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -50,7 +52,11 @@ fun AppNavigation(
             "timer/$remainingSeconds?total=$sessionTotal"
         }
         FirebaseAuth.getInstance().currentUser != null -> {
-            Screen.Home.route
+            if (isAccessibilityServiceEnabled(context)) {
+                Screen.Home.route
+            } else {
+                Screen.AccessibilityPermission.route
+            }
         }
         else -> {
             Screen.Welcome.route
@@ -76,6 +82,9 @@ fun AppNavigation(
             HomeScreen(navController)
         }
 
+        composable(Screen.AccessibilityPermission.route) {
+            AccessibilityPermissionScreen(navController)
+        }
 
         composable(Screen.Focus.route) {
             FocusScreen(navController)

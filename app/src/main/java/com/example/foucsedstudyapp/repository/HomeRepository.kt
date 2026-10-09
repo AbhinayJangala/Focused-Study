@@ -16,4 +16,15 @@ class HomeRepository {
             onFailure = onFailure
         )
     }
+    fun updateStudyStats(
+        studyTimeMinutes: Long,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        service.updateStudyStats(
+            studyTimeMinutes = studyTimeMinutes,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
 }

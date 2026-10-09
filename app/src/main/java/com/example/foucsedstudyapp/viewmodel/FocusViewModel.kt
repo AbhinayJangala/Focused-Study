@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
+import com.example.foucsedstudyapp.data.focusSession
+import com.example.foucsedstudyapp.repository.HomeRepository
+import com.google.firebase.auth.FirebaseAuth
 class FocusViewModel : ViewModel() {
     private val _installedApps = MutableStateFlow<List<InstalledApp>>(emptyList())
     val installedApps: StateFlow<List<InstalledApp>> = _installedApps.asStateFlow()
@@ -21,6 +23,7 @@ class FocusViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val homeRepository = HomeRepository()
     private val focusRepository = FocusRepository()
     fun loadApps(context: Context) {
         if (_installedApps.value.isNotEmpty()) return
@@ -42,4 +45,51 @@ class FocusViewModel : ViewModel() {
     fun stopFocusSession(context: Context) {
         FocusManager(context).stopFocus()
     }
+    fun completeFocusSession(
+        context: Context,
+        durationMinutes: Int,
+        onComplete: () -> Unit
+    ) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (userId == null) {
+            onComplete()
+            return
+        }
+
+        val endTime = System.currentTimeMillis()
+        val startTime = endTime - (durationMinutes * 60 * 1000L)
+
+        val session = focusSession(
+            userId = userId,
+            durationMinutes = durationMinutes,
+            startTime = startTime,
+            endTime = endTime,
+            completed = true
+        )
+
+        focusRepository.saveFocusSession(
+            session = session,
+            onSuccess = {
+                android.util.Log.d("FocusViewModel", "Focus session saved successfully")
+                homeRepository.updateStudyStats(
+                    studyTimeMinutes = durationMinutes.toLong(),
+                    onSuccess = {
+                        android.util.Log.d("FocusViewModel", "Study stats updated successfully")
+                        onComplete()
+                    },
+                    onFailure = { error ->
+                        android.util.Log.e("FocusViewModel", "Failed to update study stats: $error")
+                        onComplete()
+                    }
+                )
+
+            },
+            onFailure = { error ->
+                android.util.Log.e("FocusViewModel", "Failed to save focus session: $error")
+                onComplete()
+            }
+        )
+    }
+
 }

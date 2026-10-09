@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -28,15 +29,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.foucsedstudyapp.R
 import com.example.foucsedstudyapp.navigation.Screen
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.foucsedstudyapp.utils.isAccessibilityServiceEnabled
 import com.example.foucsedstudyapp.viewmodel.SignUpViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(navController: NavController) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -52,7 +55,12 @@ fun SignupScreen(navController: NavController) {
 
     LaunchedEffect(signUpSuccess) {
         if (signUpSuccess) {
-            navController.navigate(Screen.Home.route) {
+            val destination = if (isAccessibilityServiceEnabled(context)) {
+                Screen.Home.route
+            } else {
+                Screen.AccessibilityPermission.route
+            }
+            navController.navigate(destination) {
                 popUpTo(Screen.Welcome.route) { inclusive = true }
             }
         }
@@ -216,7 +224,7 @@ fun SignupScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Footer
-            Row(modifier = Modifier.padding(bottom = 24.dp)) {
+            Row(modifier = Modifier.padding(bottom = 24.dp)) { // wait, 24.dp
                 Text(text = "Already have an account? ", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                 Text(
                     text = "Sign In",

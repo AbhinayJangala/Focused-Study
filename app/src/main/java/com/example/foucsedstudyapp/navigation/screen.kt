@@ -7,5 +7,5 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Focus : Screen("focus")
     object Timer : Screen("timer/{time}?total={total}")
-
+    object AccessibilityPermission : Screen("accessibility_permission")
 }

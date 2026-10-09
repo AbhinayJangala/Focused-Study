@@ -12,6 +12,8 @@ data class User(
 
     val studyTimeToday: Long = 0L,
 
-    val sessionsToday: Int = 0
+    val sessionsToday: Int = 0,
+
+    val lastStudyDate: Long = 0L
 
 )

@@ -79,6 +79,7 @@ fun FocusScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                TimeButton(1, selectedMinutes == 1, Modifier.weight(1f)) { selectedMinutes = 1 }
                 TimeButton(15, selectedMinutes == 15, Modifier.weight(1f)) { selectedMinutes = 15 }
                 TimeButton(30, selectedMinutes == 30, Modifier.weight(1f)) { selectedMinutes = 30 }
             }

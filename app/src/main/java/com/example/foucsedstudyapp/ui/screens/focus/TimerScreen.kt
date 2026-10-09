@@ -21,8 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.foucsedstudyapp.utils.FocusManager
 import com.example.foucsedstudyapp.viewmodel.FocusViewModel
 import kotlinx.coroutines.delay
 import java.util.Locale
@@ -35,15 +37,34 @@ fun TimerScreen(
     viewModel: FocusViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    var timeLeftSeconds by remember { mutableStateOf(initialSeconds) }
-    var isRunning by remember { mutableStateOf(true) }
+    var timeLeftSeconds by rememberSaveable { mutableStateOf(initialSeconds) }
+    var isRunning by rememberSaveable { mutableStateOf(true) }
 
     val maxSeconds = remember { totalDuration }
 
-    LaunchedEffect(isRunning, timeLeftSeconds) {
-        if (isRunning && timeLeftSeconds > 0) {
+    // Timer countdown
+    LaunchedEffect(isRunning) {
+        while (isRunning && timeLeftSeconds > 0) {
             delay(1000)
             timeLeftSeconds -= 1
+        }
+    }
+
+// Session completion
+    LaunchedEffect(timeLeftSeconds) {
+        if (timeLeftSeconds == 0L) {
+
+            isRunning = false
+            FocusManager(context).stopFocus()
+            viewModel.completeFocusSession(
+                context = context,
+                durationMinutes = maxOf(1, (totalDuration / 60).toInt()),
+                onComplete = {
+                    navController.navigate("home") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -28,10 +29,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.foucsedstudyapp.R
 import com.example.foucsedstudyapp.navigation.Screen
+import com.example.foucsedstudyapp.utils.isAccessibilityServiceEnabled
 import com.example.foucsedstudyapp.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -43,7 +46,12 @@ fun LoginScreen(navController: NavController) {
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
-            navController.navigate(Screen.Home.route) {
+            val destination = if (isAccessibilityServiceEnabled(context)) {
+                Screen.Home.route
+            } else {
+                Screen.AccessibilityPermission.route
+            }
+            navController.navigate(destination) {
                 popUpTo(Screen.Welcome.route) { inclusive = true }
             }
         }
