@@ -14,6 +14,8 @@ data class User(
 
     val sessionsToday: Int = 0,
 
-    val lastStudyDate: Long = 0L
+    val lastStudyDate: Long = 0L,
+    val totalWeeklyStudyTime: Long = 0L,
+    val weekStartDate: Long = 0L
 
 )

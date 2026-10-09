@@ -10,10 +10,12 @@ import com.example.foucsedstudyapp.ui.screens.WelcomeScreen
 import com.example.foucsedstudyapp.ui.screens.focus.FocusScreen
 import com.example.foucsedstudyapp.ui.screens.focus.TimerScreen
 import com.example.foucsedstudyapp.ui.screens.login.SignupScreen
+import com.example.foucsedstudyapp.ui.screens.stats.StatsScreen
 import com.example.foucsedstudyapp.ui.screens.permissions.AccessibilityPermissionScreen
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.example.foucsedstudyapp.ui.screens.leaderboard.LeaderboardScreen
 import com.example.foucsedstudyapp.utils.FocusManager
 import com.example.foucsedstudyapp.utils.isAccessibilityServiceEnabled
 import com.google.firebase.auth.FirebaseAuth
@@ -88,6 +90,12 @@ fun AppNavigation(
 
         composable(Screen.Focus.route) {
             FocusScreen(navController)
+        }
+        composable(Screen.Leaderboard.route) {
+            LeaderboardScreen(navController)
+        }
+        composable(Screen.Stats.route) {
+            StatsScreen(navController)
         }
         composable(Screen.Timer.route) { backStackEntry ->
 

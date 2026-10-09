@@ -168,11 +168,17 @@ fun TimerScreen(
 
                 Button(
                     onClick = { 
-                        viewModel.stopFocusSession(context)
-                        navController.navigate("home") {
-                            // Clear all previous screens including Welcome/Login
-                            popUpTo(0) { inclusive = true }
-                        }
+                        val elapsedSeconds = maxSeconds - timeLeftSeconds
+                        val elapsedMinutes = (elapsedSeconds / 60).toInt()
+                        viewModel.saveIncompleteFocusSession(
+                            context = context,
+                            durationMinutes = elapsedMinutes,
+                            onComplete = {
+                                navController.navigate("home") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
+                        )
                     },
                     modifier = Modifier
                         .height(64.dp)

@@ -7,9 +7,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Leaderboard
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.foucsedstudyapp.navigation.Screen
 import com.example.foucsedstudyapp.viewmodel.HomeViewModel
 
 @Composable
@@ -54,7 +55,12 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.QueryStats, contentDescription = "Stats") },
                     label = { Text("Stats") },
                     selected = false,
-                    onClick = { },
+                    onClick = {
+                        navController.navigate(Screen.Stats.route) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
                     colors = NavigationBarItemDefaults.colors(
                         unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
@@ -63,16 +69,12 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Leaderboard, contentDescription = "Leaderboard") },
                     label = { Text("Leaderboard") },
                     selected = false,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.Person, contentDescription = "Profile") },
-                    label = { Text("Profile") },
-                    selected = false,
-                    onClick = { },
+                    onClick = {
+                        navController.navigate(Screen.Leaderboard.route) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
                     colors = NavigationBarItemDefaults.colors(
                         unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
@@ -110,22 +112,42 @@ fun HomeScreen(
                     )
                 }
                 
-                // Streak Badge
-                Surface(
-                    color = Color(0xFFFFF4E5),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Streak Badge & Logout
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        color = Color(0xFFFFF4E5),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(text = "🔥", fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${uiState.user?.streak ?: 0} Day Streak",
-                            color = Color(0xFFE67E22),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "🔥", fontSize = 16.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${uiState.user?.streak ?: 0} Day Streak",
+                                color = Color(0xFFE67E22),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(
+                        onClick = {
+                            viewModel.logout {
+                                navController.navigate(Screen.Welcome.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -218,7 +240,7 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                TextButton(onClick = { }) {
+                TextButton(onClick = { navController.navigate(Screen.Leaderboard.route) }) {
                     Text(text = "See All →", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }

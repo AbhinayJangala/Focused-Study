@@ -45,6 +45,7 @@ class FocusViewModel : ViewModel() {
     fun stopFocusSession(context: Context) {
         FocusManager(context).stopFocus()
     }
+
     fun completeFocusSession(
         context: Context,
         durationMinutes: Int,
@@ -92,4 +93,40 @@ class FocusViewModel : ViewModel() {
         )
     }
 
+    fun saveIncompleteFocusSession(
+        context: Context,
+        durationMinutes: Int,
+        onComplete: () -> Unit
+    ) {
+        stopFocusSession(context)
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (userId == null) {
+            onComplete()
+            return
+        }
+
+        val endTime = System.currentTimeMillis()
+        val startTime = endTime - (durationMinutes * 60 * 1000L)
+
+        val session = focusSession(
+            userId = userId,
+            durationMinutes = durationMinutes,
+            startTime = startTime,
+            endTime = endTime,
+            completed = false
+        )
+
+        focusRepository.saveFocusSession(
+            session = session,
+            onSuccess = {
+                android.util.Log.d("FocusViewModel", "Incomplete focus session saved to history")
+                onComplete()
+            },
+            onFailure = { error ->
+                android.util.Log.e("FocusViewModel", "Failed to save incomplete session: $error")
+                onComplete()
+            }
+        )
+    }
 }

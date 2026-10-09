@@ -35,4 +35,8 @@ class AuthRepository {
             onFailure = onFailure
         )
     }
+
+    fun signOut() {
+        authService.signOut()
+    }
 }

@@ -1,7 +1,11 @@
 package com.example.foucsedstudyapp.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.example.foucsedstudyapp.repository.AuthRepository
+import com.example.foucsedstudyapp.repository.FocusRepository
 import com.example.foucsedstudyapp.repository.HomeRepository
+import com.example.foucsedstudyapp.repository.LeaderBoardRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,9 +17,14 @@ class HomeViewModel : ViewModel() {
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private val repository = HomeRepository()
+    private val focusRepository = FocusRepository()
+    private val leaderboardRepository = LeaderBoardRepository()
+    private val authRepository = AuthRepository()
 
     init {
         getUser()
+        loadFocusSessions()
+        loadLeaderboard()
     }
 
     fun getUser() {
@@ -27,19 +36,56 @@ class HomeViewModel : ViewModel() {
                     greeting = getGreeting(),
                     streak = user.streak,
                     sessionsToday = user.sessionsToday,
-                    studyTimeToday = formatTime(user.studyTimeToday),
-                    // Adding dummy leaderboard for now, this can be fetched from a repository later
-                    leaderboard = listOf(
-                        LeaderboardUser(1, "Rahul", "8h"),
-                        LeaderboardUser(2, "Priya", "7h"),
-                        LeaderboardUser(user.streak + 10, "You", formatTime(user.studyTimeToday), true)
-                    )
+                    studyTimeToday = formatTime(user.studyTimeToday)
                 )
             },
             onFailure = { error ->
                 // Handle error
             }
         )
+    }
+
+    fun loadFocusSessions() {
+        focusRepository.getFocusSessions(
+            onSuccess = { sessions ->
+                _uiState.value = _uiState.value.copy(focusSessions = sessions)
+            },
+            onFailure = { error ->
+                // Handle error
+            }
+        )
+    }
+
+    fun loadLeaderboard() {
+        leaderboardRepository.getWeeklyLeaderboard(
+            onSuccess = { users ->
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                val userIndex = users.indexOfFirst { it.uid == currentUserId }
+                val rankStr = if (userIndex >= 0) "#${userIndex + 1}" else "#--"
+
+                val topUsers = users.take(3).mapIndexed { index, user ->
+                    LeaderboardUser(
+                        rank = index + 1,
+                        name = user.name.ifBlank { "User" },
+                        time = formatTime(user.totalWeeklyStudyTime),
+                        isUser = user.uid == currentUserId
+                    )
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    rank = rankStr,
+                    leaderboard = topUsers
+                )
+            },
+            onFailure = { error ->
+                // Handle error
+            }
+        )
+    }
+
+    fun logout(onLogoutSuccess: () -> Unit) {
+        authRepository.signOut()
+        onLogoutSuccess()
     }
 
     private fun getGreeting(): String {
