@@ -486,7 +486,7 @@ fun LeaderboardItem(
         )
 
         Spacer(modifier = Modifier.width(8.dp))
-
+//time
         Text(
             text = time,
             fontWeight = FontWeight.ExtraBold,
