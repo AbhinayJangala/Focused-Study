@@ -34,7 +34,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+//
     Scaffold(
         bottomBar = {
             NavigationBar(
