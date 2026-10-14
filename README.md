@@ -65,8 +65,8 @@ Block distracting apps during study sessions using Android's Accessibility Servi
 | **Navigation** | Navigation Compose |
 | **Architecture** | MVVM (ViewModel + Repository + Service) |
 | **Backend** | Firebase Auth + Cloud Firestore |
-| **Local Storage** | Room Database + SharedPreferences |
-| **Background Work** | WorkManager + Accessibility Service |
+| **Local Storage** | SharedPreferences (focus session state) |
+| **Background Work** | Accessibility Service (app blocking) |
 | **Auth** | Firebase Auth + Google Identity (Credential Manager) |
 | **Async** | Kotlin Coroutines + Flow |
 | **Build** | Gradle (KTS) + KSP |
