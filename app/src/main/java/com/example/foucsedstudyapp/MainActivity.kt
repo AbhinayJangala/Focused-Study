@@ -12,6 +12,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
+import com.example.foucsedstudyapp.utils.NoInternetScreen
+import com.example.foucsedstudyapp.utils.isInternetAvailable
+import com.example.foucsedstudyapp.utils.rememberNetworkConnectivity
+import androidx.compose.ui.platform.LocalContext
+
 class MainActivity : ComponentActivity() {
     private var openTimer by mutableStateOf(false)
     private var remainingSeconds by mutableStateOf(-1L)
@@ -24,14 +29,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FoucsedStudyAppTheme {
-                AppNavigation(
-                    openTimer = openTimer,
-                    initialSeconds = remainingSeconds,
-                    totalDuration = totalDuration,
-                    onRedirectHandled = { 
-                        openTimer = false 
-                    }
-                )
+                val isNetworkConnected = rememberNetworkConnectivity()
+                val context = LocalContext.current
+
+                if (!isNetworkConnected.value) {
+                    NoInternetScreen(
+                        onRetry = {
+                            isNetworkConnected.value = isInternetAvailable(context)
+                        }
+                    )
+                } else {
+                    AppNavigation(
+                        openTimer = openTimer,
+                        initialSeconds = remainingSeconds,
+                        totalDuration = totalDuration,
+                        onRedirectHandled = { 
+                            openTimer = false 
+                        }
+                    )
+                }
             }
         }
     }

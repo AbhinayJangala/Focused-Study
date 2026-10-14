@@ -17,7 +17,7 @@ class AppBlockingService : AccessibilityService() {
             return
         }
 
-        if (focusManager.isFocusActive()) {
+        if (focusManager.isFocusActive() && !focusManager.isFocusPaused()) {
             val blockedApps = focusManager.getBlockedApps()
 
             if (packageName in blockedApps) {

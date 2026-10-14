@@ -1,5 +1,6 @@
 package com.example.foucsedstudyapp.ui.screens.focus
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,17 +12,15 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.foucsedstudyapp.utils.FocusManager
@@ -37,25 +36,35 @@ fun TimerScreen(
     viewModel: FocusViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val focusManager = remember { FocusManager(context) }
+    val initiallyPaused = rememberSaveable { focusManager.isFocusPaused() }
+
     var timeLeftSeconds by rememberSaveable { mutableStateOf(initialSeconds) }
-    var isRunning by rememberSaveable { mutableStateOf(true) }
+    var isRunning by rememberSaveable { mutableStateOf(!initiallyPaused) }
+    var showEndDialog by remember { mutableStateOf(false) }
 
     val maxSeconds = remember { totalDuration }
+
+    // Intercept back button to prevent accidental exit
+    BackHandler {
+        showEndDialog = true
+    }
 
     // Timer countdown
     LaunchedEffect(isRunning) {
         while (isRunning && timeLeftSeconds > 0) {
             delay(1000)
-            timeLeftSeconds -= 1
+            if (isRunning && timeLeftSeconds > 0) {
+                timeLeftSeconds -= 1
+            }
         }
     }
 
-// Session completion
+    // Session completion
     LaunchedEffect(timeLeftSeconds) {
         if (timeLeftSeconds == 0L) {
-
             isRunning = false
-            FocusManager(context).stopFocus()
+            focusManager.stopFocus()
             viewModel.completeFocusSession(
                 context = context,
                 durationMinutes = maxOf(1, (totalDuration / 60).toInt()),
@@ -71,11 +80,57 @@ fun TimerScreen(
     val minutes = timeLeftSeconds / 60
     val seconds = timeLeftSeconds % 60
     val progress = if (maxSeconds > 0) timeLeftSeconds.toFloat() / maxSeconds else 0f
-    
+
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         label = "TimerProgress"
     )
+
+    fun handleEndSession() {
+        isRunning = false
+        focusManager.stopFocus()
+        val elapsedSeconds = maxSeconds - timeLeftSeconds
+        val elapsedMinutes = (elapsedSeconds / 60).toInt()
+        viewModel.saveIncompleteFocusSession(
+            context = context,
+            durationMinutes = elapsedMinutes,
+            onComplete = {
+                navController.navigate("home") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        )
+    }
+
+    if (showEndDialog) {
+        AlertDialog(
+            onDismissRequest = { showEndDialog = false },
+            title = {
+                Text(text = "End Focus Session?", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to end this session early? Your progress of ${(maxSeconds - timeLeftSeconds) / 60} minutes will be saved."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showEndDialog = false
+                        handleEndSession()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("End Session")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDialog = false }) {
+                    Text("Keep Focusing")
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -111,12 +166,12 @@ fun TimerScreen(
                     strokeWidth = 14.dp,
                     strokeCap = StrokeCap.Round
                 )
-                
+
                 // Active Progress
                 CircularProgressIndicator(
                     progress = { animatedProgress },
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isRunning) MaterialTheme.colorScheme.primary else Color(0xFFE67E22),
                     strokeWidth = 14.dp,
                     strokeCap = StrokeCap.Round
                 )
@@ -129,8 +184,8 @@ fun TimerScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "REMAINING",
-                        color = MaterialTheme.colorScheme.primary,
+                        text = if (isRunning) "REMAINING" else "PAUSED",
+                        color = if (isRunning) MaterialTheme.colorScheme.primary else Color(0xFFE67E22),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 2.sp
@@ -148,10 +203,18 @@ fun TimerScreen(
             ) {
                 // Play/Pause Button
                 Surface(
-                    onClick = { isRunning = !isRunning },
+                    onClick = {
+                        if (isRunning) {
+                            isRunning = false
+                            focusManager.pauseFocus(timeLeftSeconds)
+                        } else {
+                            isRunning = true
+                            focusManager.resumeFocus(timeLeftSeconds)
+                        }
+                    },
                     modifier = Modifier.size(64.dp),
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isRunning) MaterialTheme.colorScheme.primary else Color(0xFF2EBD6B),
                     tonalElevation = 4.dp
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -159,7 +222,7 @@ fun TimerScreen(
                             imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isRunning) "Pause" else "Play",
                             modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = Color.White
                         )
                     }
                 }
@@ -167,19 +230,7 @@ fun TimerScreen(
                 Spacer(modifier = Modifier.width(24.dp))
 
                 Button(
-                    onClick = { 
-                        val elapsedSeconds = maxSeconds - timeLeftSeconds
-                        val elapsedMinutes = (elapsedSeconds / 60).toInt()
-                        viewModel.saveIncompleteFocusSession(
-                            context = context,
-                            durationMinutes = elapsedMinutes,
-                            onComplete = {
-                                navController.navigate("home") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            }
-                        )
-                    },
+                    onClick = { showEndDialog = true },
                     modifier = Modifier
                         .height(64.dp)
                         .weight(1f),
@@ -198,10 +249,14 @@ fun TimerScreen(
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            
+
             // App Blocking Badge
             Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                color = if (isRunning) {
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                } else {
+                    Color(0xFFFFF4E5)
+                },
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.padding(bottom = 24.dp)
             ) {
@@ -210,15 +265,15 @@ fun TimerScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Adjust, 
-                        contentDescription = null, 
-                        tint = MaterialTheme.colorScheme.secondary,
+                        imageVector = if (isRunning) Icons.Default.Adjust else Icons.Default.Pause,
+                        contentDescription = null,
+                        tint = if (isRunning) MaterialTheme.colorScheme.secondary else Color(0xFFE67E22),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Distraction Blocking Active",
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        text = if (isRunning) "Distraction Blocking Active" else "Session Paused • Blocking Suspended",
+                        color = if (isRunning) MaterialTheme.colorScheme.onSecondaryContainer else Color(0xFFD35400),
                         fontWeight = FontWeight.ExtraBold,
                         style = MaterialTheme.typography.bodyMedium
                     )

@@ -8,6 +8,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Deselect
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,18 +34,28 @@ fun FocusScreen(
     navController: NavController,
     viewModel: FocusViewModel = viewModel()
 ) {
-
     var selectedMinutes by remember { mutableIntStateOf(30) }
     val context = LocalContext.current
-    
+
     val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    
+
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedApps by remember { mutableStateOf(setOf<String>()) }
+
     LaunchedEffect(Unit) {
         viewModel.loadApps(context)
     }
 
-    var selectedApps by remember { mutableStateOf(setOf<String>()) }
+    val filteredApps = remember(installedApps, searchQuery) {
+        if (searchQuery.isBlank()) {
+            installedApps
+        } else {
+            installedApps.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
+    val areAllSelected = installedApps.isNotEmpty() && selectedApps.size == installedApps.size
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -63,16 +77,16 @@ fun FocusScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = "Choose Focus Time",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            
-            Spacer(modifier = Modifier.height(20.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Time Selection Rows
             Row(
@@ -84,7 +98,7 @@ fun FocusScreen(
                 TimeButton(30, selectedMinutes == 30, Modifier.weight(1f)) { selectedMinutes = 30 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -94,24 +108,98 @@ fun FocusScreen(
                 TimeButton(60, selectedMinutes == 60, Modifier.weight(1f)) { selectedMinutes = 60 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Apps to Block",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+            // Apps to Block Header with Select All / Deselect All
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Apps to Block",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "${selectedApps.size} of ${installedApps.size} selected",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (selectedApps.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                if (installedApps.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            selectedApps = if (areAllSelected) {
+                                emptySet()
+                            } else {
+                                installedApps.map { it.packageName }.toSet()
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = if (areAllSelected) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (areAllSelected) Icons.Default.Deselect else Icons.Default.SelectAll,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (areAllSelected) "Deselect All" else "Select All",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Search installed apps...", fontSize = 14.sp) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear search",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface
+                )
             )
-            Text(
-                text = "Selected apps will be restricted during session",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // App List
             Surface(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 1.dp
@@ -120,12 +208,20 @@ fun FocusScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
+                } else if (filteredApps.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (searchQuery.isNotEmpty()) "No apps found matching \"$searchQuery\"" else "No apps found",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 } else {
                     LazyColumn(
                         modifier = Modifier.padding(8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        items(installedApps) { app ->
+                        items(filteredApps, key = { it.packageName }) { app ->
                             AppBlockItem(
                                 name = app.name,
                                 packageName = app.packageName,
@@ -143,10 +239,10 @@ fun FocusScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { 
+                onClick = {
                     viewModel.startFocusSession(context, selectedApps, selectedMinutes)
                     val timeInSeconds = selectedMinutes * 60
                     navController.navigate("timer/$timeInSeconds?total=$timeInSeconds")
@@ -158,10 +254,14 @@ fun FocusScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                Text("Start Focus Session", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    text = if (selectedApps.isEmpty()) "Start Focus (No Apps Blocked)" else "Start Focus (${selectedApps.size} Apps Blocked)",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -170,7 +270,7 @@ fun FocusScreen(
 fun TimeButton(minutes: Int, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = modifier.height(60.dp),
+        modifier = modifier.height(56.dp),
         shape = RoundedCornerShape(16.dp),
         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
         tonalElevation = if (isSelected) 8.dp else 0.dp
@@ -206,15 +306,15 @@ fun AppBlockItem(name: String, packageName: String, isSelected: Boolean, onToggl
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = name.take(1).uppercase(), 
+                    text = name.take(1).uppercase(),
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = name, 
-                modifier = Modifier.weight(1f), 
+                text = name,
+                modifier = Modifier.weight(1f),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface

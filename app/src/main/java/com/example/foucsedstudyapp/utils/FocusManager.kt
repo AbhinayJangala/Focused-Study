@@ -14,6 +14,26 @@ class FocusManager(context: Context) {
             putLong("focus_end_time", endTime)
             putLong("focus_duration_seconds", (minutes * 60).toLong())
             putBoolean("is_focus_active", true)
+            putBoolean("is_focus_paused", false)
+            putLong("paused_remaining_seconds", 0L)
+            apply()
+        }
+    }
+
+    fun pauseFocus(remainingSeconds: Long) {
+        prefs.edit().apply {
+            putBoolean("is_focus_paused", true)
+            putLong("paused_remaining_seconds", remainingSeconds)
+            apply()
+        }
+    }
+
+    fun resumeFocus(remainingSeconds: Long) {
+        val endTime = System.currentTimeMillis() + (remainingSeconds * 1000L)
+        prefs.edit().apply {
+            putBoolean("is_focus_paused", false)
+            putLong("focus_end_time", endTime)
+            putLong("paused_remaining_seconds", 0L)
             apply()
         }
     }
@@ -21,17 +41,24 @@ class FocusManager(context: Context) {
     fun stopFocus() {
         prefs.edit().apply {
             putBoolean("is_focus_active", false)
+            putBoolean("is_focus_paused", false)
             putLong("focus_end_time", 0)
+            putLong("paused_remaining_seconds", 0L)
             putStringSet("blocked_apps", emptySet())
             apply()
         }
     }
 
+    fun isFocusPaused(): Boolean {
+        return prefs.getBoolean("is_focus_paused", false)
+    }
+
     fun isFocusActive(): Boolean {
         val active = prefs.getBoolean("is_focus_active", false)
+        val paused = isFocusPaused()
         val endTime = prefs.getLong("focus_end_time", 0)
         
-        if (active && System.currentTimeMillis() > endTime) {
+        if (active && !paused && System.currentTimeMillis() > endTime) {
             stopFocus()
             return false
         }
@@ -43,6 +70,9 @@ class FocusManager(context: Context) {
     }
 
     fun getRemainingSeconds(): Long {
+        if (isFocusPaused()) {
+            return prefs.getLong("paused_remaining_seconds", 0L)
+        }
         val endTime = prefs.getLong("focus_end_time", 0)
         val remainingMillis = endTime - System.currentTimeMillis()
         return if (remainingMillis > 0) remainingMillis / 1000 else 0
