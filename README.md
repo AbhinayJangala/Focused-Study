@@ -1,6 +1,5 @@
 <div align="center">
 
-  <img src="app/img.png" alt="Focused Study Logo" width="110" />
 
   # 📚 Focused Study
 
