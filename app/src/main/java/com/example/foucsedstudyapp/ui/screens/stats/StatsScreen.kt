@@ -1,25 +1,34 @@
 package com.example.foucsedstudyapp.ui.screens.stats
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.QueryStats
-import androidx.compose.material.icons.outlined.Leaderboard
-import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.foucsedstudyapp.navigation.Screen
+import com.example.foucsedstudyapp.navigation.AppBottomBar
+import com.example.foucsedstudyapp.navigation.NavigationTab
+import com.example.foucsedstudyapp.ui.theme.*
 import com.example.foucsedstudyapp.viewmodel.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -33,45 +42,7 @@ fun StatsScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.QueryStats, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Filled.QueryStats, contentDescription = "Stats") },
-                    label = { Text("Stats") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Outlined.Leaderboard, contentDescription = "Leaderboard") },
-                    label = { Text("Leaderboard") },
-                    selected = false,
-                    onClick = {
-                        navController.navigate(Screen.Leaderboard.route) {
-                            popUpTo(Screen.Home.route) {
-                                inclusive = false
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
+            AppBottomBar(currentTab = NavigationTab.STATS, navController = navController)
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -79,129 +50,219 @@ fun StatsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(20.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Study Statistics 📊",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Track your focus time and productivity progress.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Study Statistics 📊",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Track your focus habits and growth",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(BrandPrimary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.QueryStats,
+                        contentDescription = null,
+                        tint = BrandPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Today's Focus Hero Card
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(12.dp, shape = RoundedCornerShape(26.dp), spotColor = BrandPrimary),
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(PrimaryHeroGradient)
+                        .padding(24.dp)
                 ) {
-                    Text(
-                        text = "Today's Focus Time",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "${uiState.studyTimeToday} mins",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Column {
+                        Text(
+                            text = "TODAY'S TOTAL FOCUS",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.85f),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = uiState.studyTimeToday,
+                            style = MaterialTheme.typography.displayLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${uiState.sessionsToday} study session${if (uiState.sessionsToday == 1) "" else "s"} completed today",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
+            // Secondary Stats Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Card(
+                // Streak Card
+                Surface(
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    shadowElevation = 2.dp
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        Text(text = "Sessions Today", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "🔥 Streak", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "${uiState.sessionsToday}",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            text = "${uiState.streak} Days",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = FocusPaused
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Consistent daily study",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
 
-                Card(
+                // Rank Card
+                Surface(
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    shadowElevation = 2.dp
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        Text(text = "Current Streak", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "🏆 Weekly Rank", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "${uiState.streak} Days",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            text = uiState.rank,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = BrandTertiary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "On the leaderboard",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-            Text(
-                text = "Session History ⏱️",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            // Session History Section Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = null,
+                    tint = BrandPrimary,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Session History",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             if (uiState.focusSessions.isEmpty()) {
-                Card(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
+                            .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "No focus sessions recorded yet.\nStart a focus session to see history!",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "⏱️", fontSize = 36.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No focus sessions recorded yet.",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Complete your first focus session to view your history!",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     uiState.focusSessions.forEach { session ->
-                        Card(
+                        Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            shape = RoundedCornerShape(18.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                            shadowElevation = 1.dp
                         ) {
                             Row(
                                 modifier = Modifier
@@ -210,27 +271,54 @@ fun StatsScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "${session.durationMinutes} Minutes Focus",
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = formatDate(session.startTime),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (session.completed) FocusActive.copy(alpha = 0.12f)
+                                                else FocusError.copy(alpha = 0.12f)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = if (session.completed) Icons.Default.CheckCircle else Icons.Default.PauseCircle,
+                                            contentDescription = null,
+                                            tint = if (session.completed) FocusActive else FocusError,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(14.dp))
+
+                                    Column {
+                                        Text(
+                                            text = "${session.durationMinutes} Minutes Focus",
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = formatDate(session.startTime),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        )
+                                    }
                                 }
+
                                 Surface(
-                                    color = if (session.completed) Color(0xFFE8F8F5) else Color(0xFFFADBD8),
-                                    shape = RoundedCornerShape(8.dp)
+                                    color = if (session.completed) FocusActive.copy(alpha = 0.12f)
+                                    else FocusError.copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(
-                                        text = if (session.completed) "Completed" else "Incomplete",
-                                        color = if (session.completed) Color(0xFF1ABC9C) else Color(0xFFE74C3C),
+                                        text = if (session.completed) "Completed" else "Early Stop",
+                                        color = if (session.completed) FocusActive else FocusError,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold
@@ -241,12 +329,14 @@ fun StatsScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }
 
 private fun formatDate(timestamp: Long): String {
     if (timestamp == 0L) return "Recent"
-    val sdf = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
+    val sdf = SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault())
     return sdf.format(Date(timestamp))
 }

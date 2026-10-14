@@ -17,32 +17,51 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryBlue,
-    secondary = PrimaryGreen,
-    tertiary = TertiaryPurple,
-    background = Color(0xFF0D1B3E),
-    surface = Color(0xFF1E293B),
+    primary = BrandPrimary,
     onPrimary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White
+    primaryContainer = Color(0xFF312E81),
+    onPrimaryContainer = Color(0xFFE0E7FF),
+    secondary = BrandSecondary,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFF064E3B),
+    onSecondaryContainer = Color(0xFFA7F3D0),
+    tertiary = BrandTertiary,
+    onTertiary = Color.White,
+    background = BackgroundDark,
+    onBackground = TextPrimaryDark,
+    surface = SurfaceDark,
+    onSurface = TextPrimaryDark,
+    surfaceVariant = SurfaceElevatedDark,
+    onSurfaceVariant = TextSecondaryDark,
+    outline = BorderDark,
+    outlineVariant = Color(0xFF374151)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = PrimaryBlue,
-    secondary = PrimaryGreen,
-    tertiary = TertiaryPurple,
-    background = BackgroundLight,
-    surface = SurfaceLight,
+    primary = BrandPrimary,
     onPrimary = Color.White,
-    onBackground = TitleDark,
-    onSurface = TitleDark
+    primaryContainer = Color(0xFFEEF2FF),
+    onPrimaryContainer = Color(0xFF312E81),
+    secondary = BrandSecondary,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFECFDF5),
+    onSecondaryContainer = Color(0xFF065F46),
+    tertiary = BrandTertiary,
+    onTertiary = Color.White,
+    background = BackgroundLight,
+    onBackground = TextPrimaryLight,
+    surface = SurfaceLight,
+    onSurface = TextPrimaryLight,
+    surfaceVariant = Color(0xFFF1F5F9),
+    onSurfaceVariant = TextSecondaryLight,
+    outline = BorderLight,
+    outlineVariant = Color(0xFFE2E8F0)
 )
 
 @Composable
 fun FoucsedStudyAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false, // Set to false to prioritize our brand colors
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -50,7 +69,6 @@ fun FoucsedStudyAppTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
@@ -60,7 +78,10 @@ fun FoucsedStudyAppTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            window.navigationBarColor = colorScheme.surface.toArgb()
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = !darkTheme
+            controller.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

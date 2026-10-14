@@ -1,20 +1,26 @@
 package com.example.foucsedstudyapp.ui.screens.focus
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -23,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.foucsedstudyapp.ui.theme.BrandPrimary
+import com.example.foucsedstudyapp.ui.theme.FocusActive
+import com.example.foucsedstudyapp.ui.theme.FocusPaused
 import com.example.foucsedstudyapp.utils.FocusManager
 import com.example.foucsedstudyapp.viewmodel.FocusViewModel
 import kotlinx.coroutines.delay
@@ -83,7 +92,14 @@ fun TimerScreen(
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
+        animationSpec = tween(durationMillis = 500),
         label = "TimerProgress"
+    )
+
+    val activeColor by animateColorAsState(
+        targetValue = if (isRunning) BrandPrimary else FocusPaused,
+        animationSpec = tween(durationMillis = 400),
+        label = "ColorProgress"
     )
 
     fun handleEndSession() {
@@ -110,7 +126,7 @@ fun TimerScreen(
             },
             text = {
                 Text(
-                    text = "Are you sure you want to end this session early? Your progress of ${(maxSeconds - timeLeftSeconds) / 60} minutes will be saved."
+                    text = "Are you sure you want to stop? Your focus time of ${(maxSeconds - timeLeftSeconds) / 60} minutes will be saved to your stats."
                 )
             },
             confirmButton = {
@@ -126,7 +142,7 @@ fun TimerScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showEndDialog = false }) {
-                    Text("Keep Focusing")
+                    Text("Stay Focused")
                 }
             }
         )
@@ -139,69 +155,82 @@ fun TimerScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
-            Text(
-                text = "Focus Session",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                fontWeight = FontWeight.Bold
-            )
+            // Subtitle badge
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+            ) {
+                Text(
+                    text = if (isRunning) "🎯 DEEP WORK IN PROGRESS" else "⏸️ SESSION PAUSED",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = activeColor,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(54.dp))
 
-            // Timer Circle
+            // Minimalist Glowing Circular Progress Indicator
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(300.dp)
+                modifier = Modifier.size(280.dp)
             ) {
                 // Background Track
                 CircularProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    strokeWidth = 14.dp,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    strokeWidth = 12.dp,
                     strokeCap = StrokeCap.Round
                 )
 
-                // Active Progress
+                // Active Progress Arc
                 CircularProgressIndicator(
                     progress = { animatedProgress },
                     modifier = Modifier.fillMaxSize(),
-                    color = if (isRunning) MaterialTheme.colorScheme.primary else Color(0xFFE67E22),
-                    strokeWidth = 14.dp,
+                    color = activeColor,
+                    strokeWidth = 12.dp,
                     strokeCap = StrokeCap.Round
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
-                        fontSize = 72.sp,
+                        fontSize = 64.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onBackground,
+                        letterSpacing = (-1).sp
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
-                        text = if (isRunning) "REMAINING" else "PAUSED",
-                        color = if (isRunning) MaterialTheme.colorScheme.primary else Color(0xFFE67E22),
-                        style = MaterialTheme.typography.labelLarge,
+                        text = if (isRunning) "TIME REMAINING" else "PAUSED",
+                        color = activeColor,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp
+                        letterSpacing = 1.5.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
-            // Controls
+            // Controls Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Play/Pause Button
+                // Play / Pause Circular Button
                 Surface(
                     onClick = {
                         if (isRunning) {
@@ -212,69 +241,84 @@ fun TimerScreen(
                             focusManager.resumeFocus(timeLeftSeconds)
                         }
                     },
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier
+                        .size(64.dp)
+                        .shadow(8.dp, shape = CircleShape, spotColor = activeColor),
                     shape = CircleShape,
-                    color = if (isRunning) MaterialTheme.colorScheme.primary else Color(0xFF2EBD6B),
-                    tonalElevation = 4.dp
+                    color = activeColor
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isRunning) "Pause" else "Play",
-                            modifier = Modifier.size(32.dp),
+                            contentDescription = if (isRunning) "Pause Session" else "Resume Session",
+                            modifier = Modifier.size(30.dp),
                             tint = Color.White
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.width(24.dp))
+                Spacer(modifier = Modifier.width(20.dp))
 
-                Button(
+                // End Session Button
+                OutlinedButton(
                     onClick = { showEndDialog = true },
                     modifier = Modifier
-                        .height(64.dp)
+                        .height(60.dp)
                         .weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f),
                         contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    shape = RoundedCornerShape(32.dp)
-                ) {
-                    Text(
-                        text = "End Session",
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 16.sp
                     )
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Stop,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "End Session",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 15.sp
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // App Blocking Badge
+            // Distraction Shield Active Pill Badge
             Surface(
                 color = if (isRunning) {
-                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                    FocusActive.copy(alpha = 0.1f)
                 } else {
-                    Color(0xFFFFF4E5)
+                    FocusPaused.copy(alpha = 0.1f)
                 },
                 shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.padding(bottom = 24.dp)
+                border = BorderStroke(
+                    1.dp,
+                    if (isRunning) FocusActive.copy(alpha = 0.3f) else FocusPaused.copy(alpha = 0.3f)
+                ),
+                modifier = Modifier.padding(bottom = 28.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (isRunning) Icons.Default.Adjust else Icons.Default.Pause,
+                        imageVector = Icons.Default.Shield,
                         contentDescription = null,
-                        tint = if (isRunning) MaterialTheme.colorScheme.secondary else Color(0xFFE67E22),
-                        modifier = Modifier.size(20.dp)
+                        tint = if (isRunning) FocusActive else FocusPaused,
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = if (isRunning) "Distraction Blocking Active" else "Session Paused • Blocking Suspended",
-                        color = if (isRunning) MaterialTheme.colorScheme.onSecondaryContainer else Color(0xFFD35400),
-                        fontWeight = FontWeight.ExtraBold,
+                        text = if (isRunning) "Distraction Shield Active" else "Shield Paused • Apps Accessible",
+                        color = if (isRunning) FocusActive else FocusPaused,
+                        fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

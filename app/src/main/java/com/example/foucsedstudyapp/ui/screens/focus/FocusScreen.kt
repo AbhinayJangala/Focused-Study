@@ -1,15 +1,18 @@
 package com.example.foucsedstudyapp.ui.screens.focus
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Deselect
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.Circle
@@ -18,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.foucsedstudyapp.ui.theme.BrandPrimary
 import com.example.foucsedstudyapp.viewmodel.FocusViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +39,7 @@ fun FocusScreen(
     navController: NavController,
     viewModel: FocusViewModel = viewModel()
 ) {
-    var selectedMinutes by remember { mutableIntStateOf(30) }
+    var selectedMinutes by remember { mutableIntStateOf(25) }
     val context = LocalContext.current
 
     val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
@@ -61,7 +66,7 @@ fun FocusScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Setup Focus", fontWeight = FontWeight.ExtraBold) },
+                title = { Text("Configure Focus", fontWeight = FontWeight.ExtraBold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -75,40 +80,33 @@ fun FocusScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 20.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
+            // Time Selector Title
             Text(
-                text = "Choose Focus Time",
-                style = MaterialTheme.typography.titleLarge,
+                text = "Target Duration",
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Time Selection Rows
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                TimeButton(1, selectedMinutes == 1, Modifier.weight(1f)) { selectedMinutes = 1 }
-                TimeButton(15, selectedMinutes == 15, Modifier.weight(1f)) { selectedMinutes = 15 }
-                TimeButton(30, selectedMinutes == 30, Modifier.weight(1f)) { selectedMinutes = 30 }
-            }
-
             Spacer(modifier = Modifier.height(10.dp))
 
+            // Preset Duration Buttons (Pomodoro-friendly)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                TimeButton(45, selectedMinutes == 45, Modifier.weight(1f)) { selectedMinutes = 45 }
-                TimeButton(60, selectedMinutes == 60, Modifier.weight(1f)) { selectedMinutes = 60 }
+                TimeButton("15m", 15, selectedMinutes == 15, Modifier.weight(1f)) { selectedMinutes = 15 }
+                TimeButton("25m", 25, selectedMinutes == 25, Modifier.weight(1f)) { selectedMinutes = 25 }
+                TimeButton("30m", 30, selectedMinutes == 30, Modifier.weight(1f)) { selectedMinutes = 30 }
+                TimeButton("45m", 45, selectedMinutes == 45, Modifier.weight(1f)) { selectedMinutes = 45 }
+                TimeButton("60m", 60, selectedMinutes == 60, Modifier.weight(1f)) { selectedMinutes = 60 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Apps to Block Header with Select All / Deselect All
             Row(
@@ -118,21 +116,21 @@ fun FocusScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Apps to Block",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "Apps to Shield",
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "${selectedApps.size} of ${installedApps.size} selected",
+                        text = "${selectedApps.size} of ${installedApps.size} apps will be blocked",
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (selectedApps.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                        color = if (selectedApps.isNotEmpty()) BrandPrimary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         fontWeight = FontWeight.SemiBold
                     )
                 }
 
                 if (installedApps.isNotEmpty()) {
-                    TextButton(
+                    FilledTonalButton(
                         onClick = {
                             selectedApps = if (areAllSelected) {
                                 emptySet()
@@ -140,26 +138,30 @@ fun FocusScreen(
                                 installedApps.map { it.packageName }.toSet()
                             }
                         },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (areAllSelected) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = if (areAllSelected) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                            contentColor = if (areAllSelected) MaterialTheme.colorScheme.error else BrandPrimary
                         )
                     ) {
                         Icon(
                             imageVector = if (areAllSelected) Icons.Default.Deselect else Icons.Default.SelectAll,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = if (areAllSelected) "Deselect All" else "Select All",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 13.sp
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Search Bar
             OutlinedTextField(
@@ -179,7 +181,7 @@ fun FocusScreen(
                         IconButton(onClick = { searchQuery = "" }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear search",
+                                contentDescription = "Clear",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -189,36 +191,38 @@ fun FocusScreen(
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
                 )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // App List
+            // App List Card
             Surface(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(22.dp),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 1.dp
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                shadowElevation = 2.dp
             ) {
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = BrandPrimary)
                     }
                 } else if (filteredApps.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (searchQuery.isNotEmpty()) "No apps found matching \"$searchQuery\"" else "No apps found",
+                            text = if (searchQuery.isNotEmpty()) "No apps found matching \"$searchQuery\"" else "No apps available",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 } else {
                     LazyColumn(
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         items(filteredApps, key = { it.packageName }) { app ->
@@ -241,6 +245,7 @@ fun FocusScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Start Session Button
             Button(
                 onClick = {
                     viewModel.startFocusSession(context, selectedApps, selectedMinutes)
@@ -249,81 +254,111 @@ fun FocusScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp),
+                    .height(58.dp)
+                    .shadow(12.dp, shape = RoundedCornerShape(20.dp), spotColor = BrandPrimary),
                 shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
             ) {
-                Text(
-                    text = if (selectedApps.isEmpty()) "Start Focus (No Apps Blocked)" else "Start Focus (${selectedApps.size} Apps Blocked)",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Begin $selectedMinutes min Focus Session",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
         }
     }
 }
 
 @Composable
-fun TimeButton(minutes: Int, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+fun TimeButton(
+    label: String,
+    minutes: Int,
+    isSelected: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
     Surface(
         onClick = onClick,
-        modifier = modifier.height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = if (isSelected) 8.dp else 0.dp
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = if (isSelected) BrandPrimary else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            if (isSelected) BrandPrimary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        shadowElevation = if (isSelected) 4.dp else 1.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = "$minutes min",
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.ExtraBold,
-                style = MaterialTheme.typography.bodyLarge
+                text = label,
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
 }
 
 @Composable
-fun AppBlockItem(name: String, packageName: String, isSelected: Boolean, onToggle: (String) -> Unit) {
+fun AppBlockItem(
+    name: String,
+    packageName: String,
+    isSelected: Boolean,
+    onToggle: (String) -> Unit
+) {
     Surface(
         onClick = { onToggle(packageName) },
-        shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
+        shape = RoundedCornerShape(14.dp),
+        color = if (isSelected) BrandPrimary.copy(alpha = 0.08f) else Color.Transparent,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // App Letter Icon
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(if (isSelected) BrandPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = name.take(1).uppercase(),
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = if (isSelected) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+
+            Spacer(modifier = Modifier.width(14.dp))
+
             Text(
                 text = name,
                 modifier = Modifier.weight(1f),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+
             Icon(
                 imageVector = if (isSelected) Icons.Default.CheckCircle else Icons.Outlined.Circle,
                 contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(24.dp)
+                tint = if (isSelected) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                modifier = Modifier.size(22.dp)
             )
         }
     }
