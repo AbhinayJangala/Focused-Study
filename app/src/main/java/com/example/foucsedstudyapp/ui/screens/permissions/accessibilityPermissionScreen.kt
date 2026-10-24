@@ -120,11 +120,11 @@ fun AccessibilityPermissionScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "FocusedStudy uses the Accessibility service to detect and restrict distracting apps during your focus sessions.",
+                text = "FocusedStudy uses the Accessibility API solely to detect when selected blocked apps are opened during your focus sessions and redirect you back to your timer.\n\nNo personal data, screen contents, keystrokes, or browsing history is ever collected, stored, or shared.",
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.bodyMedium,
-                lineHeight = 22.sp
+                lineHeight = 20.sp
             )
 
             Spacer(modifier = Modifier.height(32.dp))

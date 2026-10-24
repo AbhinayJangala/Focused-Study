@@ -126,7 +126,7 @@ fun TimerScreen(
             },
             text = {
                 Text(
-                    text = "Are you sure you want to stop? Your focus time of ${(maxSeconds - timeLeftSeconds) / 60} minutes will be saved to your stats."
+                    text = "Are you sure you want to stop? Your focus time of ${(maxSeconds - timeLeftSeconds) / 60} minutes will be saved to your session history."
                 )
             },
             confirmButton = {

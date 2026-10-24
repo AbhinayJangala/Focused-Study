@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.foucsedstudyapp.data.User
 import com.example.foucsedstudyapp.navigation.AppBottomBar
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.example.foucsedstudyapp.navigation.NavigationTab
 import com.example.foucsedstudyapp.ui.theme.*
 import com.example.foucsedstudyapp.viewmodel.LeaderBoardViewModel
@@ -41,7 +42,7 @@ fun LeaderboardScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(viewModel) {
+    LifecycleResumeEffect(viewModel) {
         viewModel.getWeeklyLeaderboard(
             onSuccess = { result ->
                 users = result
@@ -53,6 +54,7 @@ fun LeaderboardScreen(
                 isLoading = false
             }
         )
+        onPauseOrDispose { }
     }
 
     Scaffold(

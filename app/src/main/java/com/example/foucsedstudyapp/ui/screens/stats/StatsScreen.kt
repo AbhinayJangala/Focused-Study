@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -39,6 +40,12 @@ fun StatsScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.getUser()
+        viewModel.loadFocusSessions()
+        onPauseOrDispose { }
+    }
 
     Scaffold(
         bottomBar = {
@@ -131,7 +138,7 @@ fun StatsScreen(
                     }
                 }
             }
-        //stats row
+        //stats rows
             Spacer(modifier = Modifier.height(18.dp))
 
             // Secondary Stats Row

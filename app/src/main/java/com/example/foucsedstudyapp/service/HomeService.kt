@@ -1,40 +1,84 @@
 package com.example.foucsedstudyapp.service
 
 import com.example.foucsedstudyapp.data.User
+import com.example.foucsedstudyapp.utils.DateUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class HomeService {
-    val auth = FirebaseAuth.getInstance()
-    val firestore = FirebaseFirestore.getInstance()
-    val currentUser = auth.currentUser
-    val userId = currentUser?.uid
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+
     fun getUser(
         onSuccess: (User) -> Unit,
         onFailure: (String) -> Unit
     ) {
-
-        if (userId != null) {
-
-            val userRef = firestore
-                .collection("users")
-                .document(userId!!)
-
-            userRef.get().addOnSuccessListener { document ->
-
-                val user = document.toObject(User::class.java)
-
-                if (user != null) {
-                    onSuccess(user)
-                }
-            }
-                .addOnFailureListener { exception ->
-                    onFailure(exception.message ?: "Unknown error")
-                }
-        } else {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId == null) {
             onFailure("User not authenticated")
+            return
+        }
+
+        val userRef = firestore
+            .collection("users")
+            .document(currentUserId)
+
+        userRef.get().addOnSuccessListener { document ->
+            val user = document.toObject(User::class.java)
+
+            if (user != null) {
+                val now = System.currentTimeMillis()
+                val isToday = DateUtils.isSameDay(user.lastStudyDate, now)
+                val isYesterday = DateUtils.isYesterday(user.lastStudyDate, now)
+
+                // If user studied today or yesterday, streak is preserved.
+                // If the user missed yesterday and hasn't studied today, streak resets to 0.
+                val effectiveStreak = if (isToday || isYesterday) user.streak else 0
+
+                // Daily metrics are reset if no study session has occurred today
+                val effectiveSessionsToday = if (isToday) user.sessionsToday else 0
+                val effectiveStudyTimeToday = if (isToday) user.studyTimeToday else 0L
+
+                // Weekly metrics are reset if a new week has started
+                val currentWeekStart = DateUtils.getStartOfWeek(now)
+                val isCurrentWeek = user.weekStartDate == currentWeekStart
+                val effectiveWeeklyTime = if (isCurrentWeek) user.totalWeeklyStudyTime else 0L
+                val effectiveWeekStart = if (isCurrentWeek) user.weekStartDate else currentWeekStart
+
+                val needsUpdate = effectiveStreak != user.streak ||
+                        effectiveSessionsToday != user.sessionsToday ||
+                        effectiveStudyTimeToday != user.studyTimeToday ||
+                        effectiveWeeklyTime != user.totalWeeklyStudyTime ||
+                        effectiveWeekStart != user.weekStartDate
+
+                val sanitizedUser = user.copy(
+                    streak = effectiveStreak,
+                    sessionsToday = effectiveSessionsToday,
+                    studyTimeToday = effectiveStudyTimeToday,
+                    totalWeeklyStudyTime = effectiveWeeklyTime,
+                    weekStartDate = effectiveWeekStart
+                )
+
+                if (needsUpdate) {
+                    val updates = mapOf<String, Any>(
+                        "streak" to effectiveStreak,
+                        "sessionsToday" to effectiveSessionsToday,
+                        "studyTimeToday" to effectiveStudyTimeToday,
+                        "totalWeeklyStudyTime" to effectiveWeeklyTime,
+                        "weekStartDate" to effectiveWeekStart
+                    )
+                    userRef.update(updates)
+                }
+
+                onSuccess(sanitizedUser)
+            } else {
+                onFailure("User not found")
+            }
+        }.addOnFailureListener { exception ->
+            onFailure(exception.message ?: "Unknown error")
         }
     }
+
     fun updateStudyStats(
         studyTimeMinutes: Long,
         onSuccess: () -> Unit,
@@ -56,33 +100,11 @@ class HomeService {
             .collection("users")
             .document(currentUserId)
 
-        val calendar = java.util.Calendar.getInstance()
-
-        // Start of today
-        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-        calendar.set(java.util.Calendar.MINUTE, 0)
-        calendar.set(java.util.Calendar.SECOND, 0)
-        calendar.set(java.util.Calendar.MILLISECOND, 0)
-
-        val todayMillis = calendar.timeInMillis
-
-        // Start of this week: Monday at midnight
-        val weekCalendar = calendar.clone() as java.util.Calendar
-
-        val dayOfWeek = weekCalendar.get(java.util.Calendar.DAY_OF_WEEK)
-
-        val daysSinceMonday =
-            (dayOfWeek - java.util.Calendar.MONDAY + 7) % 7
-
-        weekCalendar.add(
-            java.util.Calendar.DAY_OF_MONTH,
-            -daysSinceMonday
-        )
-
-        val weekStartMillis = weekCalendar.timeInMillis
+        val now = System.currentTimeMillis()
+        val todayStartMillis = DateUtils.getStartOfDay(now)
+        val weekStartMillis = DateUtils.getStartOfWeek(now)
 
         firestore.runTransaction { transaction ->
-
             val snapshot = transaction.get(userRef)
 
             if (!snapshot.exists()) {
@@ -102,35 +124,30 @@ class HomeService {
             val storedWeeklyTime =
                 snapshot.getLong("totalWeeklyStudyTime") ?: 0L
 
-            val yesterdayCalendar =
-                calendar.clone() as java.util.Calendar
-
-            yesterdayCalendar.add(
-                java.util.Calendar.DAY_OF_MONTH,
-                -1
-            )
-
-            val yesterdayMillis = yesterdayCalendar.timeInMillis
+            val isToday = DateUtils.isSameDay(lastStudyDate, now)
+            val isYesterday = DateUtils.isYesterday(lastStudyDate, now)
 
             val newStreak: Long
             val newSessionsToday: Long
             val newStudyTimeToday: Long
 
-            when (lastStudyDate) {
-                todayMillis -> {
-                    newStreak = currentStreak
+            when {
+                isToday -> {
+                    // Already studied today: keep streak (at least 1), increment today's stats
+                    newStreak = maxOf(1L, currentStreak)
                     newSessionsToday = currentSessionsToday + 1
-                    newStudyTimeToday =
-                        currentStudyTimeToday + studyTimeMinutes
+                    newStudyTimeToday = currentStudyTimeToday + studyTimeMinutes
                 }
 
-                yesterdayMillis -> {
+                isYesterday -> {
+                    // Studied yesterday: increment streak by 1, start fresh today's stats
                     newStreak = currentStreak + 1
                     newSessionsToday = 1L
                     newStudyTimeToday = studyTimeMinutes
                 }
 
                 else -> {
+                    // Missed previous day(s) or new user: streak restarts at 1
                     newStreak = 1L
                     newSessionsToday = 1L
                     newStudyTimeToday = studyTimeMinutes
@@ -151,7 +168,7 @@ class HomeService {
                     "streak" to newStreak,
                     "sessionsToday" to newSessionsToday,
                     "studyTimeToday" to newStudyTimeToday,
-                    "lastStudyDate" to todayMillis,
+                    "lastStudyDate" to todayStartMillis,
                     "totalWeeklyStudyTime" to newWeeklyTime,
                     "weekStartDate" to weekStartMillis
                 )
@@ -166,5 +183,4 @@ class HomeService {
             )
         }
     }
-
 }
